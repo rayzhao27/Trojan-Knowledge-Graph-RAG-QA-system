@@ -28,6 +28,12 @@ If you need to find reliable answers within dense textbooks or technical documen
 
 ![Trojan KnowLedge Homepage](./pictures/query_example.png)
 
+**Grafana Monitoring:**
+
+![Trojan KnowLedge Homepage](./pictures/grafana.png)
+
+
+
 I hope this project saves you valuable time searching through textbooks so you can focus on what truly matters. Fight on! ✌️
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
