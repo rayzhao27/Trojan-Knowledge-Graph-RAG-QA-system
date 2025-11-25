@@ -90,7 +90,7 @@ Graph-RAG-QA-System/
 ├── data/                           # PDF document and processed data storage
 ├── cache/
 │   └── disk/                       # L3 disk cache storage
-└── pictures/												# README file pictures
+└── pictures/								# README file pictures
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
