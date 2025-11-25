@@ -59,7 +59,6 @@ Graph-RAG-QA-System/
 ├── requirements.txt                # Python dependencies
 ├── prometheus.yml                  # Prometheus configuration
 ├── grafana-dashboard.json          # Grafana dashboard
-├── .env                            # Environment variables
 │                                   # (Need to be created after clone the repo)
 ├── src/
 │   ├── api/
@@ -82,11 +81,7 @@ Graph-RAG-QA-System/
 │   │   └── homepage.html           # Web interface
 │   └── tests/
 │       └── test_performance.py     # Performance testing
-├── data/
-│   ├── documents/                  # PDF document storage
-│		│															  # (Where you should upload your documents)
-│   ├── processed_data/             # Cached processed chunks
-│   └── chunks_head/                # ChromaDB storage
+├── data/                           # PDF document and processed data storage
 ├── cache/
 │   └── disk/                       # L3 disk cache storage
 └── pictures/												# README file pictures
@@ -215,6 +210,17 @@ Answer + Sources
 
 ```bash
 pip install -r requirements.txt
+```
+
+```bash
+mkdir -p data/documents
+mkdir -p data/processed_data
+```
+
+Place PDF files in `data/documents/`:
+
+```bash
+cp /path/to/your/pdfs/*.pdf data/documents/
 ```
 
 **Environment Setup**
