@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trojan RAG Search</title>
+    <style>
+        :root {
+            --usc-cardinal: #990000;
+            --usc-gold: #FFCC00;
+            --bg-color: #f4f4f4;
+            --card-bg: #ffffff;
+            --text-main: #333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 40px 20px;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(153, 0, 0, 0.08);
+            position: relative;
+        }
+
+        .header-section { text-align: center; margin-bottom: 40px; position: relative; }
+
+        h1 {
+            margin: 0;
+            color: var(--usc-cardinal);
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        h1::after {
+            content: ''; display: block; width: 60px; height: 4px;
+            background: var(--usc-gold); margin: 10px auto 0; border-radius: 2px;
+        }
+
+        /* TOGGLE */
+        .toggle-container {
+            position: absolute; top: 0; right: 0;
+            display: flex; flex-direction: column; align-items: flex-end;
+        }
+        .toggle-label-text {
+            font-size: 12px; color: var(--usc-cardinal); font-weight: 700;
+            margin-bottom: 5px; text-transform: uppercase;
+        }
+        .switch { position: relative; display: inline-block; width: 48px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #e0e0e0; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider { background-color: var(--usc-gold); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* INPUT */
+        .input-section { margin-bottom: 35px; }
+        input[type="text"] {
+            width: 100%; padding: 18px 20px; border: 2px solid #eee;
+            border-radius: 12px; font-size: 17px; background: #fafafa;
+            box-sizing: border-box; transition: all 0.3s ease;
+        }
+        input[type="text"]:focus {
+            outline: none; border-color: var(--usc-gold); background: white;
+            box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.2);
+        }
+        .button-container { display: flex; justify-content: center; margin-top: 20px; }
+        button {
+            background-color: var(--usc-cardinal); color: white; padding: 14px 50px;
+            border: none; border-radius: 30px; cursor: pointer; font-size: 16px;
+            font-weight: 700; transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(153, 0, 0, 0.3);
+        }
+        button:hover { background-color: #7a0000; transform: translateY(-2px); }
+
+        /* RESULTS */
+        .results-section { margin-top: 40px; }
+        .answer-box {
+            border-left: 4px solid var(--usc-gold); background: #fefdf5;
+            padding: 25px; border-radius: 0 12px 12px 0; margin-bottom: 30px;
+            line-height: 1.7; position: relative;
+        }
+        .answer-title {
+            color: var(--usc-cardinal); font-weight: 800; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .answer-content { min-height: 20px; color: #333; white-space: pre-wrap; }
+        .analyzing-text { font-style: italic; color: #888; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        .meta-info {
+            margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(153, 0, 0, 0.1);
+            color: #666; font-size: 13px; font-family: monospace; display: flex; gap: 15px;
+        }
+
+        .sources-container { margin-top: 30px; display: none; }
+        .sources-title { color: var(--usc-cardinal); font-size: 16px; font-weight: 700; margin-bottom: 15px; }
+        .source-item {
+            background: white; border: 1px solid #eee; padding: 15px; margin-bottom: 12px;
+            border-radius: 8px; transition: transform 0.2s;
+        }
+        .source-item:hover { border-color: var(--usc-gold); transform: translateX(5px); }
+        .source-top-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: var(--usc-cardinal); font-weight: 700; }
+        .score-tag { background: #f0f0f0; padding: 2px 8px; border-radius: 4px; font-size: 11px; color: #333; font-weight: normal; }
+        .source-text { color: #444; font-size: 14px; margin-bottom: 8px; }
+        .source-file-info { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; color: #888; font-size: 12px; font-style: italic; }
+        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #aaa; }
+        .error { text-align: center; padding: 20px; color: var(--usc-cardinal); font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-section">
+            <h1>Trojan Knowledge</h1>
+            <div class="toggle-container">
+                <span class="toggle-label-text">Live Stream</span>
+                <label class="switch">
+                    <input type="checkbox" id="streamToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <input type="text" id="query" placeholder="What do you want to know today?" />
+            <div class="button-container">
+                <button onclick="search()">SEARCH</button>
+            </div>
+        </div>
+        <div class="results-section" id="results"></div>
+    </div>
+    <div class="footer">Powered by RayZhao • Fight On ✌️</div>
+
+    <script>
+        let modelConfig = { model: 'gpt-3.5-turbo', temperature: 0.3 };
+        fetch('/config').then(res => res.json()).then(d => modelConfig = d).catch(() => {});
+
+        async function search() {
+            const query = document.getElementById('query').value;
+            const resultsDiv = document.getElementById('results');
+            const isStreaming = document.getElementById('streamToggle').checked;
+
+            if (!query.trim()) return;
+
+            // 1. Render Unified UI
+            renderAnswerBox(resultsDiv);
+
+            try {
+                if (isStreaming) await searchStreaming(query);
+                else await searchRegular(query);
+            } catch (error) {
+                resultsDiv.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+            }
+        }
+
+        function renderAnswerBox(container) {
+            const isStreaming = document.getElementById('streamToggle').checked;
+            const titleSuffix = isStreaming ? ' (Live Stream)' : '';
+            container.innerHTML = `
+                <div class="answer-box">
+                    <div class="answer-title">✌️ Answer${titleSuffix}</div>
+                    <div class="answer-content" id="displayContent"><span class="analyzing-text">Analyzing...</span></div>
+                    <div class="meta-info" id="metaInfo" style="visibility: hidden;"></div>
+                </div>
+                <div class="sources-container" id="sourcesSection">
+                    <div class="sources-title">Reference Sources</div>
+                    <div id="sourcesList"></div>
+                </div>`;
+        }
+
+        async function searchRegular(query) {
+            const res = await fetch('/ask', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ query, k: 5, use_rerank: true, ...modelConfig })
+            });
+            if (!res.ok) throw new Error('Request failed');
+            updateUI(await res.json());
+        }
+
+        async function searchStreaming(query) {
+            const res = await fetch('/ask/stream', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ query, k: 5, use_rerank: true, ...modelConfig })
+            });
+            if (!res.ok) throw new Error('Stream failed');
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            const displayContent = document.getElementById('displayContent');
+            let buffer = "", isMeta = false, metaBuffer = "", isFirst = true;
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value, { stream: true });
+
+                if (!isMeta) {
+                    buffer += chunk;
+                    const splitIdx = buffer.indexOf("\n\n__METADATA__\n");
+                    if (splitIdx !== -1) {
+                        isMeta = true;
+                        displayContent.innerText = buffer.substring(0, splitIdx);
+                        // Skip the delimiter: "\n\n__METADATA__\n" is 15 chars
+                        metaBuffer = buffer.substring(splitIdx + 15);
+                    } else {
+                        if (isFirst) { displayContent.innerText = ""; isFirst = false; }
+                        displayContent.innerText = buffer;
+                    }
+                } else {
+                    metaBuffer += chunk;
+                }
+            }
+            if (metaBuffer.trim()) {
+                try { 
+                    let cleanMeta = metaBuffer.trim();
+
+                    if (!cleanMeta.startsWith('{')) {
+                        cleanMeta = '{' + cleanMeta;
+                    }
+                    console.log("Metadata received:", cleanMeta);
+                    const parsed = JSON.parse(cleanMeta);
+                    updateUI({...parsed, answer: displayContent.innerText}); 
+                }
+                catch (e) { 
+                    console.error("JSON Parse Error:", e); 
+                    console.error("Raw metadata:", metaBuffer);
+                }
+            }
+        }
+
+        function updateUI(data) {
+            if (data.answer) document.getElementById('displayContent').innerText = data.answer;
+            const meta = document.getElementById('metaInfo');
+            meta.style.visibility = 'visible';
+            const timeInSeconds = ((data.total_time_ms || 0) / 1000).toFixed(2);
+            meta.innerHTML = `<span>⚡ ${timeInSeconds}s</span> | <span>🔤 ${data.tokens_used||0} tokens</span> | <span>🤖 ${data.model||modelConfig.model}</span>`;
+
+            if (data.sources?.length) {
+                document.getElementById('sourcesSection').style.display = 'block';
+                document.getElementById('sourcesList').innerHTML = data.sources.map((s, i) => `
+                    <div class="source-item">
+                        <div class="source-top-row"><strong>Source ${i+1}</strong><span class="score-tag">Score: ${s.score.toFixed(3)}</span></div>
+                        <div class="source-text">${s.text_preview}</div>
+                        <div class="source-file-info">[INFO] ${s.source}</div>
+                    </div>`).join('');
+            }
+        }
+        document.getElementById('query').addEventListener('keypress', e => { if(e.key==='Enter') search() });
+    </script>
+</body>
+</html>
